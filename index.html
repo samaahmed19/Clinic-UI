@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Dr Ahmed Yassin X-Ray</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background-image: url('images/xray-background.jpg');
+      background-size: cover;
+      background-position: center;
+      background-attachment: fixed;
+      margin: 0;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    h1 {
+      font-size: 48px;
+      color: #007BFF;
+      text-shadow: 1px 1px 2px #000;
+      margin-bottom: 20px;
+      animation: fadeInDown 1s ease-in-out;
+    }
+
+    .selector {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      animation: fadeInUp 1s ease-in-out;
+    }
+
+    .step {
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      margin: 10px 0;
+    }
+
+    .step.active {
+      display: flex;
+    }
+
+    .step button {
+      margin: 5px;
+      padding: 10px 25px;
+      border: none;
+      border-radius: 8px;
+      background-color: #28a745;
+      color: white;
+      font-weight: bold;
+      cursor: pointer;
+      transition: 0.3s;
+    }
+
+    .step button:hover {
+      background-color: #218838;
+    }
+
+    .back-button {
+      margin-top: 10px;
+      background-color: #dc3545;
+    }
+
+    .back-button:hover {
+      background-color: #c82333;
+    }
+
+    .xray-preview, .clinic-location {
+      margin-top: 20px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 20px;
+      justify-content: center;
+      animation: fadeIn 1.5s ease-in-out;
+    }
+
+    .xray-card {
+      width: 250px;
+      background: #fff;
+      border-radius: 10px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+      padding: 15px;
+      text-align: center;
+      transition: transform 0.3s;
+    }
+
+    .xray-card:hover {
+      transform: translateY(-10px);
+    }
+
+    .xray-card img {
+      width: 100%;
+      border-radius: 8px;
+    }
+
+    .booking-button, .confirm-button {
+      margin-top: 15px;
+      padding: 10px 20px;
+      background-color: #007BFF;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    .booking-button:hover, .confirm-button:hover {
+      background-color: #0056b3;
+    }
+
+    @keyframes fadeInDown {
+      from { opacity: 0; transform: translateY(-20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes fadeInUp {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+  </style>
+</head>
+<body>
+
+  <h1>Dr Ahmed Yassin X-Ray</h1>
+
+  <div class="selector">
+    <div id="step-type" class="step active">
+      <p>Select X-Ray Type:</p>
+      <button onclick="selectType('chest')">Chest</button>
+      <button onclick="selectType('abdomen')">Abdomen</button>
+      <button onclick="selectType('bones')">Bones</button>
+    </div>
+
+    <div id="step-area" class="step">
+      <p>Select Area:</p>
+      <div id="area-buttons"></div>
+      <button class="back-button" onclick="goBackTo('type')">Back</button>
+    </div>
+  </div>
+
+  <div class="xray-preview" id="xrayResults"></div>
+
+  <div class="clinic-location" id="locationStep" style="display:none;">
+    <h2>Choose Clinic Location:</h2>
+    <button onclick="confirmBooking('1 شارع عباد الرحمن - فيصل')">1. Faisal - 1 Abad ElRahman St</button>
+    <button onclick="confirmBooking('2 شارع عباد الرحمن - حورس')">2. Hores - 2 Abad ElRahman St</button>
+    <button onclick="confirmBooking('أم المصريين')">3. Om ElMasreyin</button>
+    <button onclick="confirmBooking('تأمين صحي')">4. Health Insurance</button>
+    <button class="back-button" onclick="goBackTo('area')">Back</button>
+  </div>
+
+  <script>
+    let selectedType = "";
+
+    const xrayData = {
+      chest: [
+        { img: "chest1.jpg", name: "Chest PA View", price: 200, time: "10 minutes" },
+        { img: "chest2.jpg", name: "Chest Lateral View", price: 250, time: "15 minutes" }
+      ],
+      abdomen: [
+        { img: "abdomen1.jpg", name: "Abdomen AP Supine", price: 300, time: "20 minutes" },
+        { img: "abdomen2.jpg", name: "Abdomen Erect", price: 320, time: "20 minutes" }
+      ],
+      bones: [
+        { img: "bone1.jpg", name: "Hand X-Ray", price: 150, time: "10 minutes" },
+        { img: "bone2.jpg", name: "Knee X-Ray", price: 180, time: "12 minutes" },
+        { img: "bone3.jpg", name: "Foot X-Ray", price: 160, time: "10 minutes" }
+      ]
+    };
+
+    function selectType(type) {
+      selectedType = type;
+      document.getElementById("step-type").classList.remove("active");
+      document.getElementById("step-area").classList.add("active");
+
+      const areaButtons = document.getElementById("area-buttons");
+      areaButtons.innerHTML = "";
+
+      xrayData[type].forEach((xray, index) => {
+        const btn = document.createElement("button");
+        btn.textContent = xray.name;
+        btn.onclick = () => showXray(index);
+        areaButtons.appendChild(btn);
+      });
+    }
+
+    function showXray(index) {
+      const resultDiv = document.getElementById("xrayResults");
+      resultDiv.innerHTML = "";
+
+      const xray = xrayData[selectedType][index];
+      const card = document.createElement("div");
+      card.className = "xray-card";
+      card.innerHTML = `
+        <img src="images/${xray.img}" alt="${xray.name}" />
+        <h3>${xray.name}</h3>
+        <p>Price: ${xray.price} EGP</p>
+        <p>Time: ${xray.time}</p>
+        <button class="booking-button" onclick="showLocations()">Book Now</button>
+        <button class="back-button" onclick="goBackTo('area')">Back</button>
+      `;
+      resultDiv.appendChild(card);
+    }
+
+    function showLocations() {
+      document.getElementById("xrayResults").innerHTML = "";
+      document.getElementById("locationStep").style.display = "flex";
+    }
+
+    function confirmBooking(location) {
+      alert(`Booking confirmed at ${location}`);
+    }
+
+    function goBackTo(step) {
+      document.getElementById("xrayResults").innerHTML = "";
+      document.getElementById("locationStep").style.display = "none";
+      if (step === "type") {
+        document.getElementById("step-area").classList.remove("active");
+        document.getElementById("step-type").classList.add("active");
+      } else if (step === "area") {
+        document.getElementById("locationStep").style.display = "none";
+        document.getElementById("step-area").classList.add("active");
+      }
+    }
+  </script>
+
+</body>
+</html>
